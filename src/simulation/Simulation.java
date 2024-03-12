@@ -11,7 +11,6 @@ import java.util.List;
 
 public class Simulation {
     public final int tStart, tEnd, duration;
-    private boolean realData = true;
     private final SimulatedCluster cluster;
     public final double spf;
     private final EnergyArrivalModel eModel;
@@ -30,11 +29,10 @@ public class Simulation {
         this.spf = spf;
     }
 
-    public void run(boolean realData) {
+    public void run() {
+
         //INIT DATA
         cluster.initSimulation();
-
-        this.realData = realData;
 
         // SIMULATE FROM T_START TO T_END
         for (int j = tStart + 1; j < tEnd; j++) {
@@ -45,10 +43,8 @@ public class Simulation {
         }
     }
 
-    private static final int SECONDS_PER_DAY = 24 * 60 * 60;
-
     private double toDays(int time) {
-        return (double) time / SECONDS_PER_DAY;
+        return (double) time * this.spf / (24 * 60 * 60);
     }
 
     @Deprecated
@@ -64,7 +60,7 @@ public class Simulation {
         final Sink sink = cluster.getCluster().getSink();
 
         final StringBuilder nameBuilder = new StringBuilder();
-        nameBuilder.append(realData ? "realdata_" : "simdata_");
+        nameBuilder.append(eModel.isReal() ? "realdata_" : "simdata_");
         nameBuilder.append(duration + "d_").append((int) Math.floor(sink.batterySize) + "b_");
 
         switch (sink.mode) {

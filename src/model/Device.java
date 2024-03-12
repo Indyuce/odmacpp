@@ -30,6 +30,16 @@ public abstract class Device implements EnergyUser, Simulable {
     public final DeviceMode mode;
 
     /**
+     * By default, set to 1. This is the ratio of power effectively
+     * received by the device over the power transmitted by the
+     * energy model.
+     * <p>
+     * This can model a heterogeneous environment where devices don't
+     * get the same energy.
+     */
+    public double exposure;
+
+    /**
      * ODMAC++ computed optimal communication frequency (Hz)
      */
     protected double cfm = 0;
@@ -46,16 +56,17 @@ public abstract class Device implements EnergyUser, Simulable {
     public static final double idleCost = 0.1;
 
     public static final double DEFAULT_MAX_COMM_FREQUENCY = 500;
-    public static final double DEFAULT_ENERGY_RATIO = 500;
+    public static final double DEFAULT_EXPOSURE = 1;
     public static final double COMM_FREQUENCY_INIT = 0;
     public static final double DEFAULT_BATTERY_SIZE = 40000;
 
     public Device(int energyPeriod, DeviceMode mode) {
-        this(energyPeriod, mode, DEFAULT_MAX_COMM_FREQUENCY);
+        this(energyPeriod, mode, DEFAULT_EXPOSURE, DEFAULT_MAX_COMM_FREQUENCY);
     }
 
-    public Device(int energyPeriod, DeviceMode mode, double maxCommFrequency) {
+    public Device(int energyPeriod, DeviceMode mode, double exposure, double maxCommFrequency) {
         this.energyPeriod = energyPeriod;
+        this.exposure = exposure;
         this.mode = mode;
         this.energySum = new ArrayList<>(energyPeriod);
         this.energySumCarre = new ArrayList<>(energyPeriod);
@@ -113,18 +124,15 @@ public abstract class Device implements EnergyUser, Simulable {
 
         if (periodNumber >= periodMax) {
             double formerEnergy = this.energyData.get(counterEnergy).removeFirst();
-            //System.out.println("Former energy = " + formerEnergy) ;
-            //System.out.println("LinkedList size : " + this.energyData.get(counterEnergy).size());
-
             energySum.set(counterEnergy, energySum.get(counterEnergy) - formerEnergy);
             energySumCarre.set(counterEnergy, energySumCarre.get(counterEnergy) - (formerEnergy * formerEnergy));
         }
+
         counterEnergy++;
         if (counterEnergy >= energyPeriod) {
             counterEnergy = 0;
             periodNumber++;
-            if (periodNumber > periodMax)
-                periodNumber = periodMax;
+            if (periodNumber > periodMax) periodNumber = periodMax;
 
             if (periodNumber > 1) {
                 availableEnergy = 0;
@@ -132,8 +140,7 @@ public abstract class Device implements EnergyUser, Simulable {
                 //System.out.println("periodNumber = " + periodNumber) ;
                 for (int i = 0; i < energyPeriod; i++) {
                     double sigmai = energySumCarre.get(i) / periodNumber - (energySum.get(i) / periodNumber) * (energySum.get(i) / periodNumber);
-                    if (sigmai < 0)
-                        sigmai = 0;
+                    if (sigmai < 0) sigmai = 0;
                     sigma.add(Math.sqrt(sigmai));
                     //System.out.println("sigma = " +sigma.get(i));
                     availableEnergy += (energySum.get(i) / periodNumber - sigmai) * seconds;
@@ -166,7 +173,6 @@ public abstract class Device implements EnergyUser, Simulable {
                 if (commFrequency < 0) commFrequency = 0;
                 break;
 
-            // MODE 2 : FREQUENCE MOYENNE UTILISEE POUR NE PAS AVOIR DE TEMPS MORT : ODMAC++
             case ODMACPP_GB:
             case ODMACPP_SLB:
                 if (this.energy == 0) commFrequency = 0;
@@ -197,13 +203,11 @@ public abstract class Device implements EnergyUser, Simulable {
             }
         }
 
-        if (fmax - fmin < acc)
-            return f * 0.92;
+        if (fmax - fmin < acc) return f * 0.92;
         else {
             if (Eprev < Math.min(this.batterySize / 1.8, E0))
                 return computeFreq(fmin, f, f, E0, sigma, acc, ep, seconds);
-            else
-                return computeFreq(f, fmax, f, E0, sigma, acc, ep, seconds);
+            else return computeFreq(f, fmax, f, E0, sigma, acc, ep, seconds);
         }
     }
 }

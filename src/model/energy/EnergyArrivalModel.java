@@ -4,5 +4,7 @@ public interface EnergyArrivalModel {
 	
 	public double getEnergy(double t) ;
 	
-	public int getEnergyPeriod() ; 
+	public int getEnergyPeriod() ;
+
+	public boolean isReal();
 }

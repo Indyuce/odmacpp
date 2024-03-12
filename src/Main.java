@@ -1,16 +1,15 @@
+import graphics.GraphFrame;
+import model.Cluster;
+import model.DeviceMode;
+import model.energy.EnergyArrivalModel;
+import simulation.Simulation;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Random;
 
-import graphics.GraphFrame;
-import model.DeviceMode;
-import model.energy.EnergyArrivalModel;
-import model.Cluster;
-import simulation.Simulation;
-
 public class Main {
-
 
     public static void main(String[] args) {
         double secondPerFrame = 60;
@@ -18,12 +17,14 @@ public class Main {
         double secondPerPeriod = 24 * 60 * 60 / secondPerFrame;
         boolean memo = true;
 
+        //    generateDataPaper(memo, secondPerPeriod, secondPerFrame);
+
         EnergyArrivalModel eModel = generateModel(realData, secondPerPeriod, secondPerFrame);
-        Cluster h = new Cluster(3, eModel.getEnergyPeriod(), DeviceMode.ODMACPP_GB);
+        Cluster h = new Cluster(2, eModel.getEnergyPeriod(), DeviceMode.ODMACPP_GB);
         h.getSink().batterySize = 40000;
         h.getSink().periodMax = 90;
         Simulation simul = new Simulation(0, 60 * 24 * 90, h, secondPerFrame, eModel);
-        simul.run(realData);
+        simul.run();
         if (memo) simul.exportToCsv();
         else new GraphFrame(1024, 768, simul);
     }
@@ -58,7 +59,7 @@ public class Main {
         h.getSink().batterySize = maxBattery;
         h.getSink().a = a;
         Simulation simul = new Simulation(0, 60 * 24 * duration, h, secondPerFrame, eModel);
-        simul.run(realData);
+        simul.run();
         if (memo) simul.exportToCsv();
         else new GraphFrame(1024, 768, simul);
     }
@@ -69,7 +70,7 @@ public class Main {
         h.getSink().batterySize = maxBattery;
         h.getSink().c = c;
         Simulation simul = new Simulation(0, 60 * 24 * duration, h, secondPerFrame, eModel);
-        simul.run(realData);
+        simul.run();
         if (memo) simul.exportToCsv();
         else new GraphFrame(1024, 768, simul);
     }
@@ -80,7 +81,7 @@ public class Main {
         h.getSink().batterySize = maxBattery;
         h.getSink().periodMax = SW;
         Simulation simul = new Simulation(0, 60 * 24 * duration, h, secondPerFrame, eModel);
-        simul.run(realData);
+        simul.run();
         if (memo) simul.exportToCsv();
         else new GraphFrame(1024, 768, simul);
     }
@@ -96,7 +97,6 @@ public class Main {
 
                 @Override
                 public double getEnergy(double t) {
-                    //System.out.println(t) ;
                     counter++;
                     if (counter == 60) {
                         currGauss = r.nextGaussian() / 4;
@@ -109,10 +109,15 @@ public class Main {
                 public int getEnergyPeriod() {
                     return (int) secondPerPeriod;
                 }
+
+                @Override
+                public boolean isReal() {
+                    return false;
+                }
             };
         } else {
             eModel = new EnergyArrivalModel() {
-                double[][] data = new double[2][40000];
+                final double[] data = new double[40000];
 
                 {
                     try {
@@ -121,8 +126,7 @@ public class Main {
                         int i = 0;
                         while ((s = r.readLine()) != null) {
                             String[] table = s.split(";");
-                            data[0][i] = Double.parseDouble(table[0]);
-                            data[1][i] = Math.max(0, Double.parseDouble(table[1]));
+                            data[i] = Math.max(0, Double.parseDouble(table[1]));
                             i++;
                         }
                         r.close();
@@ -132,16 +136,20 @@ public class Main {
                 }
 
                 public double getEnergy(double t) {
-                    return data[1][(int) (t / (5 * 60))] * 0.2 / (100);
+                    return Math.max(0, data[(int) (t / (5 * 60))] * 0.2 / 100);
                 }
 
                 @Override
                 public int getEnergyPeriod() {
                     return (int) secondPerPeriod;
                 }
+
+                @Override
+                public boolean isReal() {
+                    return true;
+                }
             };
         }
         return eModel;
     }
-
 }

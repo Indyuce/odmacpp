@@ -3,8 +3,7 @@ package simulation;
 import model.Sink;
 
 public class SimulatedSink extends SimulatedDevice {
-
-    Sink sink;
+    private final Sink sink;
 
     public SimulatedSink(Simulation simulation, Sink s) {
         super(simulation);

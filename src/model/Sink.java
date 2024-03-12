@@ -5,7 +5,7 @@ import simulation.Simulation;
 
 public class Sink extends Device {
     public Sink(int ep, DeviceMode mode, double commFreqMax) {
-        super(ep, mode, commFreqMax);
+        super(ep, mode, 1, commFreqMax);
     }
 
     @Override
