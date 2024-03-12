@@ -1,30 +1,28 @@
 package model;
 
-public class Sink extends Device {
+import simulation.SimulatedSink;
+import simulation.Simulation;
 
+public class Sink extends Device {
     public final int mode;
     public double c = 0.2;
     public double a = 1d / 10d;
 
     public Sink(int ep, int mode, double commFreqMax) {
-        super(ep);
+        super(ep, commFreqMax);
 
         this.mode = mode;
-        setCommFreqMax(commFreqMax);
-        //System.out.println(a) ;
     }
 
     @Override
     public double getInstantThroughput() {
-
-//		System.out.println("Energy = "+ energy) ;
-        //System.out.println("CommFreq = " + commFreq) ;
-        return this.commFreq;
+        // No collision possible as there is only one downlink sink channel
+        return this.commFrequency;
     }
 
     @Override
-    public SimulatedDevice createSimulated(double spf, int tStart, int tEnd) {
-        return new SimulatedSink(this, spf, tStart, tEnd);
+    public SimulatedSink createSimulated(Simulation simulation) {
+        return new SimulatedSink(simulation, this);
     }
 
     @Override
@@ -32,29 +30,21 @@ public class Sink extends Device {
         switch (mode) {
             // MODE 0 : CONSOMMATION D'ENERGIE CONSTANTE
             case 0:
-                if (this.energy < 100)
-                    commFreq = 0;
-                else
-                    commFreq = c;
+                if (this.energy < 100) commFrequency = 0;
+                else commFrequency = c;
                 break;
             // MODE 1 : FREQUENCE D'ENVOI PROPORTIONNELLE A l'ENERGIE STOCKEE
             case 1:
-                commFreq = energy * a;
-                if (commFreq < 0)
-                    commFreq = 0;
+                commFrequency = energy * a;
+                if (commFrequency < 0) commFrequency = 0;
                 break;
             // MODE 2 : FREQUENCE MOYENNE UTILISEE POUR NE PAS AVOIR DE TEMPS MORT : ODMAC++
             case 2:
-                if (this.energy == 0)
-                    commFreq = 0;
-                if (this.counterEnergy == 0)
-                    commFreq = cfm;
+                if (this.energy == 0) commFrequency = 0;
+                if (this.counterEnergy == 0) commFrequency = cfm;
                 break;
         }
-        if (commFreq > commFreqMax)
-            commFreq = commFreqMax;
 
+        commFrequency = Math.min(commFrequency, maxCommFrequency);
     }
-
-
 }

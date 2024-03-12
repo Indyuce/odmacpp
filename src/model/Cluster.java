@@ -1,6 +1,8 @@
 package model;
 
 import model.energy.EnergyUser;
+import simulation.SimulatedCluster;
+import simulation.Simulation;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,8 +37,8 @@ public class Cluster implements EnergyUser, Simulable {
     }
 
     @Override
-    public Simulated createSimulated(double spf, int tStart, int tEnd) {
-        return new SimulatedCluster(this, spf, tStart, tEnd);
+    public SimulatedCluster createSimulated(Simulation simulation) {
+        return new SimulatedCluster(simulation, this);
     }
 
     public Collection<Simulable> getSimulables() {
@@ -51,12 +53,9 @@ public class Cluster implements EnergyUser, Simulable {
     }
 
     public void updateParameters() {
-        double activeNumber = 0;
-        for (Captor c : captors)
-            if (c.getEnergy() != 0)
-                activeNumber++;
 
-        for (Captor c : captors)
-            c.pc = 1 / activeNumber;
+        // Update captor collision probability
+        final double activeCaptorNumber = Math.max(1, captors.stream().filter(captor -> captor.getEnergy() != 0).count());
+        for (Captor c : captors) c.pc = 1 / activeCaptorNumber;
     }
 }

@@ -1,9 +1,10 @@
 package model;
 
-interface Simulable {
-	
-	public Simulated createSimulated(double spf, int tStart, int tEnd) ;
-	
-	void updateParameters() ;
+import simulation.Simulated;
+import simulation.Simulation;
 
+public interface Simulable {
+    public Simulated createSimulated(Simulation simulation);
+
+    void updateParameters();
 }

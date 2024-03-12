@@ -1,12 +1,16 @@
 package graphics;
 
-import java.awt.GridLayout;
+import simulation.Simulation;
+import simulation.data.DataTable;
+
+import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 
-import javax.swing.JFrame;
-
-import model.Simulation;
-
+/**
+ * Use Python notebook instead to display results
+ */
+@Deprecated
 public class GraphFrame extends JFrame {
 
     /**
@@ -16,6 +20,7 @@ public class GraphFrame extends JFrame {
     private int width, height;
     private ArrayList<GraphPanel> graphPanels;
 
+    @Deprecated
     public GraphFrame(int width, int height, Simulation sim) {
         super();
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -24,14 +29,14 @@ public class GraphFrame extends JFrame {
         this.setSize(width, height);
         this.setLayout(new GridLayout(3, 2));
 
-        ArrayList<ArrayList<Double>> dataSet = sim.getData();
+        DataTable dataSet = sim.table;
         //System.out.println("FINAL ENERGY ON THE SINK = " + Simulation.getArea(dataSet.get(3))) ;
-        System.out.println("FINAL THROUGHPUT ON THE SINK = " + Simulation.getArea(dataSet.get(3)));
+        //System.out.println("FINAL THROUGHPUT ON THE SINK = " + Simulation.getArea(dataSet.byIndex(3).data));
 
-        graphPanels = new ArrayList<GraphPanel>(dataSet.size());
-        graphPanels.add(new GraphPanel(dataSet.get(0)));
-        graphPanels.add(new GraphPanel(dataSet.get(1)));
-        graphPanels.add(new GraphPanel(dataSet.get(3)));
+        graphPanels = new ArrayList<>(dataSet.data.size());
+        graphPanels.add(new GraphPanel(dataSet.byIndex(0).data));
+        graphPanels.add(new GraphPanel(dataSet.byIndex(1).data));
+        graphPanels.add(new GraphPanel(dataSet.byIndex(3).data));
 
         // for(int i = 0 ; i < 1 ; i ++)
         //	 graphPanels.add(new GraphPanel(dataSet.get(i))) ;

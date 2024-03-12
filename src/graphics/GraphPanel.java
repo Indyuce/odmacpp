@@ -1,26 +1,26 @@
 package graphics;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.util.ArrayList;
+import javax.swing.*;
+import java.awt.*;
+import java.util.List;
 
-import javax.swing.JPanel;
-
+/**
+ * Use Python notebook instead to display results
+ */
+@Deprecated
 public class GraphPanel extends JPanel {
 
     /**
      *
      */
     private static final long serialVersionUID = -4206770463206056562L;
-    ArrayList<Double> data;
+    List<Double> data;
     double dataMax;
     double offY;
     double offX;
 
-    public GraphPanel(ArrayList<Double> data) {
+    @Deprecated
+    public GraphPanel(List<Double> data) {
         super();
         this.data = data;
         this.offX = 20;

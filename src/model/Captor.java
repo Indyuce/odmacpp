@@ -1,27 +1,28 @@
 package model;
 
-public class Captor extends Device {
+import simulation.SimulatedCaptor;
+import simulation.Simulation;
 
-    protected double pc = 1; //collision probability
+public class Captor extends Device {
+    protected double pc = 1; // collision probability TODO probability of NO collision?
 
     public Captor(double pc, int ep) {
         super(ep);
+
         this.pc = pc;
     }
 
     @Override
     public double getInstantThroughput() {
-        return this.commFreq * pc;
+        return this.commFrequency * pc;
     }
 
     @Override
-    public SimulatedDevice createSimulated(double spf, int tStart, int tEnd) {
-        return new SimulatedCaptor(this, spf, tStart, tEnd);
+    public SimulatedCaptor createSimulated(Simulation simulation) {
+        return new SimulatedCaptor(simulation, this);
     }
 
     @Override
     public void updateParameters() {
     }
-
-
 }
