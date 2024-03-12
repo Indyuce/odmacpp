@@ -18,12 +18,12 @@ public class Cluster implements EnergyUser, Simulable {
     private final List<Simulable> simulables;
     final static double PC_INIT = 1;
 
-    public Cluster(int nbCaptors, int ep, int mode) {
+    public Cluster(int nbCaptors, int ep, DeviceMode mode) {
         this.sink = new Sink(ep, mode, 100 * nbCaptors * PC_INIT);
 
         List<Captor> captors = new ArrayList<>(nbCaptors);
         for (int i = 0; i < nbCaptors; i++)
-            captors.add(new Captor(PC_INIT, ep));
+            captors.add(new Captor(PC_INIT, mode, ep));
         this.captors = Collections.unmodifiableList(captors);
 
         List<Simulable> simulables = new ArrayList<>(nbCaptors + 1);

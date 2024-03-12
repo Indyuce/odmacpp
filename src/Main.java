@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.Random;
 
 import graphics.GraphFrame;
-import model.DeviceVersion;
+import model.DeviceMode;
 import model.energy.EnergyArrivalModel;
 import model.Cluster;
 import simulation.Simulation;
@@ -24,7 +24,7 @@ public class Main {
         EnergyArrivalModel eModel = generateModel(realData, secondPerPeriod, secondPerFrame);
         Cluster h = new Cluster(1, eModel.getEnergyPeriod(), 2);
         h.getSink().setBatterySize(20000);
-        h.getSink().version = DeviceVersion.ODMACPP_V2;
+        h.getSink().version = DeviceMode.ODMACPP_GB;
         h.getSink().periodMax = 90;
         Simulation simul = new Simulation(0, 60 * 24 * 90, h, secondPerFrame, eModel);
         simul.simulate(realData, h.getSink());
@@ -52,19 +52,19 @@ public class Main {
         simDataProp(memo, false, 7, 40000, secondPerPeriod, secondPerFrame, 1d / 5000d);
         simDataProp(memo, false, 7, 40000, secondPerPeriod, secondPerFrame, 1d);
 
-        simDataODMACPP(memo, false, 30, 40000, secondPerPeriod, secondPerFrame, DeviceVersion.ODMACPP_V1, 90);
-        simDataODMACPP(memo, false, 30, 40000, secondPerPeriod, secondPerFrame, DeviceVersion.ODMACPP_V2, 90);
+        simDataODMACPP(memo, false, 30, 40000, secondPerPeriod, secondPerFrame, DeviceMode.ODMACPP_SLB, 90);
+        simDataODMACPP(memo, false, 30, 40000, secondPerPeriod, secondPerFrame, DeviceMode.ODMACPP_GB, 90);
 
         simDataProp(memo, true, 30, 40000, secondPerPeriod, secondPerFrame, 1d / 5000d);
 
-        simDataODMACPP(memo, true, 30, 40000, secondPerPeriod, secondPerFrame, DeviceVersion.ODMACPP_V1, 90);
-        simDataODMACPP(memo, true, 30, 40000, secondPerPeriod, secondPerFrame, DeviceVersion.ODMACPP_V2, 90);
+        simDataODMACPP(memo, true, 30, 40000, secondPerPeriod, secondPerFrame, DeviceMode.ODMACPP_SLB, 90);
+        simDataODMACPP(memo, true, 30, 40000, secondPerPeriod, secondPerFrame, DeviceMode.ODMACPP_GB, 90);
 
-        simDataODMACPP(memo, true, 30, 10000, secondPerPeriod, secondPerFrame, DeviceVersion.ODMACPP_V1, 90);
-        simDataODMACPP(memo, true, 30, 10000, secondPerPeriod, secondPerFrame, DeviceVersion.ODMACPP_V2, 90);
+        simDataODMACPP(memo, true, 30, 10000, secondPerPeriod, secondPerFrame, DeviceMode.ODMACPP_SLB, 90);
+        simDataODMACPP(memo, true, 30, 10000, secondPerPeriod, secondPerFrame, DeviceMode.ODMACPP_GB, 90);
 
-        simDataODMACPP(memo, true, 100, 40000, secondPerPeriod, secondPerFrame, DeviceVersion.ODMACPP_V2, 100);
-        simDataODMACPP(memo, true, 100, 40000, secondPerPeriod, secondPerFrame, DeviceVersion.ODMACPP_V2, 15);
+        simDataODMACPP(memo, true, 100, 40000, secondPerPeriod, secondPerFrame, DeviceMode.ODMACPP_GB, 100);
+        simDataODMACPP(memo, true, 100, 40000, secondPerPeriod, secondPerFrame, DeviceMode.ODMACPP_GB, 15);
     }
 
     public static void generateAllData(boolean memo, double maxBattery, double secondPerPeriod, double secondPerFrame) {
@@ -104,7 +104,7 @@ public class Main {
             } else {
                 Cluster h = new Cluster(5, eModel.getEnergyPeriod(), i);
                 h.getSink().setBatterySize(maxBattery);
-                h.getSink().version = DeviceVersion.ODMACPP_V1;
+                h.getSink().version = DeviceMode.ODMACPP_SLB;
                 Simulation simul = new Simulation(0, 60 * 24 * duration, h, secondPerFrame, eModel);
                 simul.simulate(realData, h.getSink());
                 if (memo) simul.exportToCsv();
@@ -113,7 +113,7 @@ public class Main {
             {
                 Cluster h = new Cluster(5, eModel.getEnergyPeriod(), i);
                 h.getSink().setBatterySize(maxBattery);
-                h.getSink().version = DeviceVersion.ODMACPP_V2;
+                h.getSink().version = DeviceMode.ODMACPP_GB;
                 Simulation simul = new Simulation(0, 60 * 24 * duration, h, secondPerFrame, eModel);
                 simul.simulate(realData, h.getSink());
                 if (memo) simul.exportToCsv();
@@ -144,7 +144,7 @@ public class Main {
         else new GraphFrame(1024, 768, simul);
     }
 
-    public static void simDataODMACPP(boolean memo, boolean realData, int duration, double maxBattery, double secondPerPeriod, double secondPerFrame, DeviceVersion version, int SW) {
+    public static void simDataODMACPP(boolean memo, boolean realData, int duration, double maxBattery, double secondPerPeriod, double secondPerFrame, DeviceMode version, int SW) {
         EnergyArrivalModel eModel = generateModel(realData, secondPerPeriod, secondPerFrame);
         Cluster h = new Cluster(5, eModel.getEnergyPeriod(), 2);
         h.getSink().setBatterySize(maxBattery);
@@ -161,7 +161,7 @@ public class Main {
         EnergyArrivalModel eModel = generateModel(realData, secondPerPeriod, secondPerFrame);
         Cluster h = new Cluster(5, eModel.getEnergyPeriod(), mode);
         h.getSink().setBatterySize(maxBattery);
-        h.getSink().version = DeviceVersion.ODMACPP_V1;
+        h.getSink().version = DeviceMode.ODMACPP_SLB;
         Simulation simul = new Simulation(0, 60 * 24 * duration, h, secondPerFrame, eModel);
         simul.simulate(realData, h.getSink());
         if (memo) simul.exportToCsv();

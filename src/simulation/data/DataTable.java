@@ -45,16 +45,9 @@ public class DataTable {
     public void export(File targetFile) {
         try {
             final PrintWriter pw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(targetFile), StandardCharsets.UTF_8));
-            // pw.println(title) ;
-            // pw.println("0;1;2;3") ;
             final int dataRowCount = data.stream().findAny().get().dataSize();
-
-            // TODO add TIME (days) // ------------- // ------------------ // -------------
-            // TODO pw.println("Time (days);Energy Profile (W/m2);Battery Level (J);Throughput (Packets/s)");
-
             for (int i = -1; i < dataRowCount; i++)
                 pw.println(fetchColumn(i));
-
             pw.close();
         } catch (FileNotFoundException exception) {
             exception.printStackTrace();

@@ -1,5 +1,6 @@
 package simulation;
 
+import model.DeviceMode;
 import model.Simulable;
 import model.Sink;
 import model.energy.EnergyArrivalModel;
@@ -10,20 +11,19 @@ import java.io.File;
 import java.util.List;
 
 public class Simulation {
-    public final int tStart, tEnd;
-    int duration = 1;
+    public final int tStart, tEnd, duration;
     Sink sink;
     private boolean realData = true;
-    private Simulated sim;
+    private final Simulated sim;
     public final double spf;
-    private EnergyArrivalModel eModel;
+    private final EnergyArrivalModel eModel;
     public final DataTable table;
     public final DataColumn energyArrivalRecord, timeRecord;
 
     public Simulation(int tStart, int tEnd, Simulable sim, double spf, EnergyArrivalModel eModel) {
         this.tStart = tStart;
         this.tEnd = tEnd;
-        duration = (this.tEnd - this.tStart) / 1440;
+        this.duration = (tEnd - tStart) / 1440;
         this.eModel = eModel;
         this.table = new DataTable(this);
         this.timeRecord = table.newColumn("Time (s)");
@@ -73,13 +73,14 @@ public class Simulation {
         nameBuilder.append(duration + "d_").append(sink.batterySize + "b_");
 
         switch (sink.mode) {
-            case 0:
+            case CONSTANT_FREQUENCY:
                 nameBuilder.append("const_c_eq_" + (String.format("%1.1e", sink.c)));
                 break;
-            case 1:
+            case PROPORTIONAL_FREQUENCY:
                 nameBuilder.append("prop_a_eq_" + (String.format("%1.1e", sink.a)));
                 break;
-            case 2:
+            case ODMACPP_GB:
+            case ODMACPP_SLB:
                 nameBuilder.append(sink.version.name());
                 nameBuilder.append("_" + sink.periodMax + "sw");
                 break;

@@ -20,7 +20,7 @@ public abstract class Device implements EnergyUser, Simulable {
      * Maximum communication frequency (Hz)
      */
     protected final double maxCommFrequency;
-    public DeviceVersion version;
+    public DeviceMode version;
     protected final int energyPeriod;
     protected final List<Double> energySum, energySumCarre;
     protected final List<LinkedList<Double>> energyData;
@@ -28,6 +28,7 @@ public abstract class Device implements EnergyUser, Simulable {
     protected int counterEnergy = 0;
     protected double periodNumber = 0;
     public int periodMax = 90;
+    public final DeviceMode mode;
 
     /**
      * ODMAC++ computed optimal communication frequency (Hz)
@@ -49,12 +50,13 @@ public abstract class Device implements EnergyUser, Simulable {
     public static final double COMM_FREQUENCY_INIT = 0;
     public static final double DEFAULT_BATTERY_SIZE = 40000;
 
-    public Device(int energyPeriod) {
-        this(energyPeriod, DEFAULT_MAX_COMM_FREQUENCY);
+    public Device(int energyPeriod, DeviceMode mode) {
+        this(energyPeriod, mode, DEFAULT_MAX_COMM_FREQUENCY);
     }
 
-    public Device(int energyPeriod, double maxCommFrequency) {
+    public Device(int energyPeriod, DeviceMode mode, double maxCommFrequency) {
         this.energyPeriod = energyPeriod;
+        this.mode = mode;
         this.energySum = new ArrayList<>(energyPeriod);
         this.energySumCarre = new ArrayList<>(energyPeriod);
         this.energyData = new ArrayList<>();
@@ -139,12 +141,40 @@ public abstract class Device implements EnergyUser, Simulable {
                 //System.out.println(eDispo) ;
                 //System.out.println("Energy sum 1000 = "+ this.energySum.get(1000));
                 double cfMax = 1000;//Math.max(0,(this.energyMax-idleCost*seconds)/(commCost*seconds))	;
-                if (version == DeviceVersion.ODMACPP_V2)
+                if (version == DeviceMode.ODMACPP_GB)
                     cfm = computeFreq(0, cfMax, 0, this.energy, sigma, 0.01, energyPeriod, seconds);
-                if (version == DeviceVersion.ODMACPP_V1)
+                if (version == DeviceMode.ODMACPP_SLB)
                     cfm = Math.max(0, (availableEnergy - idleCost * seconds * energyPeriod) / (COMMUNICATION_COST * seconds * energyPeriod));
             }
         }
+    }
+
+    public double c = 0.2;
+    public double a = 1d / 10d;
+
+    @Override
+    public void updateParameters() {
+        switch (mode) {
+
+            case CONSTANT_FREQUENCY:
+                if (this.energy < 100) commFrequency = 0;
+                else commFrequency = c;
+                break;
+
+            case PROPORTIONAL_FREQUENCY:
+                commFrequency = energy * a;
+                if (commFrequency < 0) commFrequency = 0;
+                break;
+
+            // MODE 2 : FREQUENCE MOYENNE UTILISEE POUR NE PAS AVOIR DE TEMPS MORT : ODMAC++
+            case ODMACPP_GB:
+            case ODMACPP_SLB:
+                if (this.energy == 0) commFrequency = 0;
+                if (this.counterEnergy == 0) commFrequency = cfm;
+                break;
+        }
+
+        commFrequency = Math.min(commFrequency, maxCommFrequency);
     }
 
     private double computeFreq(double fmin, double fmax, double lastfpos, double E0, List<Double> sigma, double acc, double ep, double seconds) {
