@@ -15,34 +15,28 @@ import java.util.List;
 public class Cluster implements EnergyUser, Simulable {
     private final Sink sink;
     private final List<Captor> captors;
-    private final List<Simulable> simulables;
     final static double PC_INIT = 1;
 
     public Cluster(int nbCaptors, int ep, DeviceMode mode) {
         this.sink = new Sink(ep, mode, 100 * nbCaptors * PC_INIT);
 
-        List<Captor> captors = new ArrayList<>(nbCaptors);
+        final List<Captor> captors = new ArrayList<>(nbCaptors);
         for (int i = 0; i < nbCaptors; i++)
             captors.add(new Captor(PC_INIT, mode, ep));
         this.captors = Collections.unmodifiableList(captors);
-
-        List<Simulable> simulables = new ArrayList<>(nbCaptors + 1);
-        simulables.add(sink);
-        simulables.addAll(captors);
-        this.simulables = Collections.unmodifiableList(simulables);
     }
 
     public Sink getSink() {
         return sink;
     }
 
+    public List<Captor> getCaptors() {
+        return captors;
+    }
+
     @Override
     public SimulatedCluster createSimulated(Simulation simulation) {
         return new SimulatedCluster(simulation, this);
-    }
-
-    public Collection<Simulable> getSimulables() {
-        return simulables;
     }
 
     @Override

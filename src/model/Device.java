@@ -20,7 +20,6 @@ public abstract class Device implements EnergyUser, Simulable {
      * Maximum communication frequency (Hz)
      */
     protected final double maxCommFrequency;
-    public DeviceMode version;
     protected final int energyPeriod;
     protected final List<Double> energySum, energySumCarre;
     protected final List<LinkedList<Double>> energyData;
@@ -47,6 +46,7 @@ public abstract class Device implements EnergyUser, Simulable {
     public static final double idleCost = 0.1;
 
     public static final double DEFAULT_MAX_COMM_FREQUENCY = 500;
+    public static final double DEFAULT_ENERGY_RATIO = 500;
     public static final double COMM_FREQUENCY_INIT = 0;
     public static final double DEFAULT_BATTERY_SIZE = 40000;
 
@@ -141,9 +141,9 @@ public abstract class Device implements EnergyUser, Simulable {
                 //System.out.println(eDispo) ;
                 //System.out.println("Energy sum 1000 = "+ this.energySum.get(1000));
                 double cfMax = 1000;//Math.max(0,(this.energyMax-idleCost*seconds)/(commCost*seconds))	;
-                if (version == DeviceMode.ODMACPP_GB)
+                if (mode == DeviceMode.ODMACPP_GB)
                     cfm = computeFreq(0, cfMax, 0, this.energy, sigma, 0.01, energyPeriod, seconds);
-                if (version == DeviceMode.ODMACPP_SLB)
+                if (mode == DeviceMode.ODMACPP_SLB)
                     cfm = Math.max(0, (availableEnergy - idleCost * seconds * energyPeriod) / (COMMUNICATION_COST * seconds * energyPeriod));
             }
         }
@@ -205,9 +205,5 @@ public abstract class Device implements EnergyUser, Simulable {
             else
                 return computeFreq(f, fmax, f, E0, sigma, acc, ep, seconds);
         }
-    }
-
-    public void setBatterySize(double batterySize) {
-        this.batterySize = batterySize;
     }
 }

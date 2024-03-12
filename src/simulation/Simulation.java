@@ -1,7 +1,6 @@
 package simulation;
 
-import model.DeviceMode;
-import model.Simulable;
+import model.Cluster;
 import model.Sink;
 import model.energy.EnergyArrivalModel;
 import simulation.data.DataColumn;
@@ -12,15 +11,14 @@ import java.util.List;
 
 public class Simulation {
     public final int tStart, tEnd, duration;
-    Sink sink;
     private boolean realData = true;
-    private final Simulated sim;
+    private final SimulatedCluster cluster;
     public final double spf;
     private final EnergyArrivalModel eModel;
     public final DataTable table;
     public final DataColumn energyArrivalRecord, timeRecord;
 
-    public Simulation(int tStart, int tEnd, Simulable sim, double spf, EnergyArrivalModel eModel) {
+    public Simulation(int tStart, int tEnd, Cluster cluster, double spf, EnergyArrivalModel eModel) {
         this.tStart = tStart;
         this.tEnd = tEnd;
         this.duration = (tEnd - tStart) / 1440;
@@ -28,21 +26,20 @@ public class Simulation {
         this.table = new DataTable(this);
         this.timeRecord = table.newColumn("Time (s)");
         this.energyArrivalRecord = table.newColumn("Energy Profile (W/m2)");
-        this.sim = sim.createSimulated(this);
+        this.cluster = cluster.createSimulated(this);
         this.spf = spf;
     }
 
-    public void simulate(boolean realData, Sink s) {
+    public void run(boolean realData) {
         //INIT DATA
-        sim.initData();
+        cluster.initSimulation();
 
         this.realData = realData;
-        this.sink = s;
 
         // SIMULATE FROM T_START TO T_END
         for (int j = tStart + 1; j < tEnd; j++) {
             final double energyAvailable = eModel.getEnergy(j * spf);
-            sim.stepSimul(energyAvailable);
+            cluster.stepSimulation(energyAvailable);
             energyArrivalRecord.addNewData(energyAvailable);
             timeRecord.addNewData(toDays(j - 1));
         }
@@ -52,10 +49,6 @@ public class Simulation {
 
     private double toDays(int time) {
         return (double) time / SECONDS_PER_DAY;
-    }
-
-    public double getSpf() {
-        return spf;
     }
 
     @Deprecated
@@ -68,9 +61,11 @@ public class Simulation {
     }
 
     public void exportToCsv() {
-        StringBuilder nameBuilder = new StringBuilder();
+        final Sink sink = cluster.getCluster().getSink();
+
+        final StringBuilder nameBuilder = new StringBuilder();
         nameBuilder.append(realData ? "realdata_" : "simdata_");
-        nameBuilder.append(duration + "d_").append(sink.batterySize + "b_");
+        nameBuilder.append(duration + "d_").append((int) Math.floor(sink.batterySize) + "b_");
 
         switch (sink.mode) {
             case CONSTANT_FREQUENCY:
@@ -81,7 +76,7 @@ public class Simulation {
                 break;
             case ODMACPP_GB:
             case ODMACPP_SLB:
-                nameBuilder.append(sink.version.name());
+                nameBuilder.append(sink.mode.name().toLowerCase());
                 nameBuilder.append("_" + sink.periodMax + "sw");
                 break;
         }

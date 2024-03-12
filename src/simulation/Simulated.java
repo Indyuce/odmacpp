@@ -7,7 +7,7 @@ public abstract class Simulated {
         this.simulation = simulation;
     }
 
-    public abstract void initData();
+    public abstract void initSimulation();
 
-    public abstract void stepSimul(double energyAvailable);
+    public abstract void stepSimulation(double energyAvailable);
 }

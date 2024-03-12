@@ -15,7 +15,7 @@ public abstract class SimulatedDevice extends Simulated {
     }
 
     @Override
-    public void stepSimul(double energyAvailable) {
+    public void stepSimulation(double energyAvailable) {
         this.getDevice().addEnergyData(energyAvailable, simulation.spf);
         this.getDevice().updateParameters();
         this.getDevice().updateEnergy(energyAvailable, simulation.spf);
@@ -28,7 +28,7 @@ public abstract class SimulatedDevice extends Simulated {
     protected abstract Device getDevice();
 
     @Override
-    public void initData() {
+    public void initSimulation() {
         this.energyRecord.addNewData(getDevice().getEnergy());
         this.frequencyRecord.addNewData(getDevice().getCommunicationFrequency());
         this.throughputRecord.addNewData(getDevice().getInstantThroughput());

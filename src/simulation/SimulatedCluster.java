@@ -1,15 +1,18 @@
 package simulation;
 
+import model.Captor;
 import model.Cluster;
-import model.Simulable;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Could be merged with {@link Simulation}
+ */
 public class SimulatedCluster extends Simulated {
-    protected final List<Simulated> simulated;
     protected final Cluster cluster;
+    protected final List<Simulated> simulated;
 
     public SimulatedCluster(Simulation simulation, Cluster cluster) {
         super(simulation);
@@ -17,21 +20,25 @@ public class SimulatedCluster extends Simulated {
         this.cluster = cluster;
 
         final List<Simulated> simulated = new ArrayList<>();
-        for (Simulable s : cluster.getSimulables())
-            simulated.add(s.createSimulated(simulation));
+        simulated.add(cluster.getSink().createSimulated(simulation));
+        for (Captor captor : cluster.getCaptors()) simulated.add(captor.createSimulated(simulation));
         this.simulated = Collections.unmodifiableList(simulated);
     }
 
-    @Override
-    public void stepSimul(double energyAvailable) {
-        cluster.updateParameters();
-        for (Simulated s : simulated)
-            s.stepSimul(energyAvailable);
+    public Cluster getCluster() {
+        return cluster;
     }
 
     @Override
-    public void initData() {
+    public void stepSimulation(double energyAvailable) {
+        cluster.updateParameters();
         for (Simulated s : simulated)
-            s.initData();
+            s.stepSimulation(energyAvailable);
+    }
+
+    @Override
+    public void initSimulation() {
+        for (Simulated s : simulated)
+            s.initSimulation();
     }
 }
