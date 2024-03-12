@@ -1,13 +1,12 @@
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Random;
 
 import graphics.GraphFrame;
-import model.EnergyArrivalModel;
-import model.Hub;
+import model.energy.EnergyArrivalModel;
+import model.Cluster;
 import model.Simulation;
 
 public class Main {
@@ -83,7 +82,7 @@ public class Main {
 		{
 			if(i != 2)
 			{					
-				Hub h = new Hub(5, eModel.getEnergyPeriod(),i ) ;
+				Cluster h = new Cluster(5, eModel.getEnergyPeriod(),i ) ;
 				h.getSink().setEnergyMax(maxBattery);
 				double a = h.getSink().a ;
 				double c = h.getSink().c ;
@@ -109,7 +108,7 @@ public class Main {
 			else
 			{
 			{
-				Hub h = new Hub(5, eModel.getEnergyPeriod(),i ) ;
+				Cluster h = new Cluster(5, eModel.getEnergyPeriod(),i ) ;
 				h.getSink().setEnergyMax(maxBattery);
 				h.getSink().version = 0 ;
 				Simulation simul = new Simulation(0, 60*24*duration, h,secondPerFrame, eModel) ;
@@ -125,7 +124,7 @@ public class Main {
 			}
 			}
 			{	
-				Hub h = new Hub(5, eModel.getEnergyPeriod(),i ) ;
+				Cluster h = new Cluster(5, eModel.getEnergyPeriod(),i ) ;
 				h.getSink().setEnergyMax(maxBattery);
 				h.getSink().version = 1 ;
 				Simulation simul = new Simulation(0, 60*24*duration, h,secondPerFrame, eModel) ;
@@ -145,7 +144,7 @@ public class Main {
 	public static void simDataProp(boolean memo, boolean realData, int duration,double maxBattery, double secondPerPeriod, double secondPerFrame, double a)
 	{
 		EnergyArrivalModel eModel = generateModel(realData, secondPerPeriod, secondPerFrame) ;
-		Hub h = new Hub(5, eModel.getEnergyPeriod(),1 ) ;
+		Cluster h = new Cluster(5, eModel.getEnergyPeriod(),1 ) ;
 		h.getSink().setEnergyMax(maxBattery);
 		h.getSink().a =a ;
 		Simulation simul = new Simulation(0, 60*24*duration, h,secondPerFrame, eModel) ;
@@ -164,7 +163,7 @@ public class Main {
 	public static void simDataConst(boolean memo, boolean realData, int duration,double maxBattery, double secondPerPeriod, double secondPerFrame, double c)
 	{
 		EnergyArrivalModel eModel = generateModel(realData, secondPerPeriod, secondPerFrame) ;
-		Hub h = new Hub(5, eModel.getEnergyPeriod(),0 ) ;
+		Cluster h = new Cluster(5, eModel.getEnergyPeriod(),0 ) ;
 		h.getSink().setEnergyMax(maxBattery);
 		h.getSink().c =c ;
 		Simulation simul = new Simulation(0, 60*24*duration, h,secondPerFrame, eModel) ;
@@ -181,7 +180,7 @@ public class Main {
 	public static void simDataODMACPP(boolean memo, boolean realData, int duration,double maxBattery, double secondPerPeriod, double secondPerFrame, int version, int SW)
 	{
 		EnergyArrivalModel eModel = generateModel(realData, secondPerPeriod, secondPerFrame) ;
-		Hub h = new Hub(5, eModel.getEnergyPeriod(),2 ) ;
+		Cluster h = new Cluster(5, eModel.getEnergyPeriod(),2 ) ;
 		h.getSink().setEnergyMax(maxBattery);
 		h.getSink().version = version ;
 		h.getSink().periodMax = SW ;
@@ -201,7 +200,7 @@ public class Main {
 	public static void simData(boolean memo, boolean realData, int duration,double maxBattery, double secondPerPeriod, double secondPerFrame, int mode)
 	{
 		EnergyArrivalModel eModel = generateModel(realData, secondPerPeriod, secondPerFrame) ;
-		Hub h = new Hub(5, eModel.getEnergyPeriod(),mode ) ;
+		Cluster h = new Cluster(5, eModel.getEnergyPeriod(),mode ) ;
 		h.getSink().setEnergyMax(maxBattery);
 		h.getSink().version = 0 ;
 		Simulation simul = new Simulation(0, 60*24*duration, h,secondPerFrame, eModel) ;
@@ -249,7 +248,7 @@ public class Main {
 			double[][] data = new double[2][40000] ;
 			{
 				try {
-					BufferedReader r = new BufferedReader(new FileReader("data_mississipi.csv"));
+					BufferedReader r = new BufferedReader(new FileReader("data/data_mississipi.csv"));
 					String s ;
 					int i = 0 ;
 					while ((s= r.readLine()) != null)

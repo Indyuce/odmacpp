@@ -8,11 +8,11 @@ class SimulatedCluster extends Simulated {
     protected Cluster cluster;
     protected ArrayList<ArrayList<Double>> dataSet;
 
-    protected SimulatedCluster(Cluster c, double spf, int tStart, int tEnd) {
+    protected SimulatedCluster(Cluster cluster, double spf, int tStart, int tEnd) {
         super(spf);
         simulated = new ArrayList<Simulated>();
-        this.cluster = c;
-        for (Simulable s : c.getSimulables())
+        this.cluster = cluster;
+        for (Simulable s : cluster.getSimulables())
             simulated.add(s.createSimulated(spf, tStart, tEnd));
         dataSet = new ArrayList<ArrayList<Double>>();
         for (Simulated s : simulated)

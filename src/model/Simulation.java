@@ -1,5 +1,7 @@
 package model;
 
+import model.energy.EnergyArrivalModel;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;

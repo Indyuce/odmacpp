@@ -1,5 +1,7 @@
 package model;
 
+import model.energy.EnergyUser;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 

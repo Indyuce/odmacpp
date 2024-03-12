@@ -1,4 +1,4 @@
-package model;
+package model.energy;
 
 public interface EnergyArrivalModel {
 	
