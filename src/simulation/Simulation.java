@@ -23,7 +23,7 @@ public class Simulation {
         this.duration = (tEnd - tStart) / 1440;
         this.eModel = eModel;
         this.table = new DataTable(this);
-        this.timeRecord = table.newColumn("Time (s)");
+        this.timeRecord = table.newColumn("Time (days)");
         this.energyArrivalRecord = table.newColumn("Energy Profile (W/m2)");
         this.cluster = cluster.createSimulated(this);
         this.spf = spf;
