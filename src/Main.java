@@ -21,8 +21,10 @@ public class Main {
 
         EnergyArrivalModel eModel = generateModel(realData, secondPerPeriod, secondPerFrame);
         Cluster h = new Cluster(2, eModel.getEnergyPeriod(), DeviceMode.ODMACPP_GB);
-        h.getSink().batterySize = 40000;
-        h.getSink().periodMax = 90;
+        h.getCaptors().get(0).exposure = 1;
+        h.getCaptors().get(0).batterySize = 40000;
+        h.getCaptors().get(1).exposure = .4;
+        h.getCaptors().get(0).batterySize = 20000;
         Simulation simul = new Simulation(0, 60 * 24 * 90, h, secondPerFrame, eModel);
         simul.run();
         if (memo) simul.exportToCsv();

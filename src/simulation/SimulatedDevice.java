@@ -9,16 +9,19 @@ public abstract class SimulatedDevice extends Simulated {
     protected SimulatedDevice(Simulation simulation) {
         super(simulation);
 
-        this.energyRecord = simulation.table.newColumn(getClass().getSimpleName() + "_Energy (J)");
-        //this.frequencyRecord = simulation.table.newColumn(getClass().getSimpleName() + "_Frequency (Hz)");
-        this.throughputRecord = simulation.table.newColumn(getClass().getSimpleName() + "_Throughput (pkt/s)");
+        final String friendlyName = getClass().getSimpleName().replace("Simulated", "");
+        this.energyRecord = simulation.table.newColumn(friendlyName + " Energy (J)");
+        //this.frequencyRecord = simulation.table.newColumn(friendlyName + " Frequency (Hz)");
+        this.throughputRecord = simulation.table.newColumn(friendlyName + " Throughput (pkt/s)");
     }
 
     @Override
     public void stepSimulation(double energyAvailable) {
-        this.getDevice().addEnergyData(energyAvailable, simulation.spf);
+        final double effectiveEnergy = energyAvailable * getDevice().exposure;
+
+        this.getDevice().addEnergyData(effectiveEnergy, simulation.spf);
         this.getDevice().updateParameters();
-        this.getDevice().updateEnergy(energyAvailable, simulation.spf);
+        this.getDevice().updateEnergy(effectiveEnergy, simulation.spf);
 
         energyRecord.addNewData(getDevice().getEnergy());
         //frequencyRecord.addNewData(getDevice().getInstantThroughput()) ;
