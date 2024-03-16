@@ -12,7 +12,9 @@ public abstract class Device implements EnergyUser, Simulable {
     protected double commFrequency = COMM_FREQUENCY_INIT;
 
     /**
-     * Size of device battery (J)
+     * Size of device battery (J). This can be adjusted to have
+     * captors with different battery sizes and model an
+     * inhomogeneous system.
      */
     public double batterySize;
 
@@ -32,10 +34,8 @@ public abstract class Device implements EnergyUser, Simulable {
     /**
      * By default, set to 1. This is the ratio of power effectively
      * received by the device over the power transmitted by the
-     * energy model.
-     * <p>
-     * This can model a heterogeneous environment where devices don't
-     * get the same energy.
+     * energy model. It can be adjusted to create an inhomogeneous
+     * systems of captors with different exposure to energy.
      */
     public double exposure;
 

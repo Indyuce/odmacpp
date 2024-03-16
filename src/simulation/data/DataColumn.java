@@ -25,4 +25,14 @@ public class DataColumn {
     public double getData(int index) {
         return data.get(index);
     }
+
+    /**
+     * Integrates over time
+     */
+    public double integrate(double secondsPerTick) {
+        double s = 0;
+        for (int i = 0; i < data.size() - 1; i++)
+            s += data.get(i) + data.get(i + 1);
+        return s * secondsPerTick / 2;
+    }
 }

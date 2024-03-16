@@ -29,6 +29,10 @@ public class SimulatedCluster extends Simulated {
         return cluster;
     }
 
+    public List<Simulated> getSimulated() {
+        return simulated;
+    }
+
     @Override
     public void stepSimulation(double energyAvailable) {
         cluster.updateParameters();

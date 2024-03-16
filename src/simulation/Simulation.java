@@ -11,8 +11,13 @@ import java.util.List;
 
 public class Simulation {
     public final int tStart, tEnd, duration;
-    private final SimulatedCluster cluster;
+    public final SimulatedCluster cluster;
+
+    /**
+     * Amount of seconds per simulation tick/step/frame
+     */
     public final double spf;
+
     private final EnergyArrivalModel eModel;
     public final DataTable table;
     public final DataColumn energyArrivalRecord, timeRecord;

@@ -11,7 +11,7 @@ public abstract class SimulatedDevice extends Simulated {
 
         final String friendlyName = getClass().getSimpleName().replace("Simulated", "");
         this.energyRecord = simulation.table.newColumn(friendlyName + " Energy (J)");
-        //this.frequencyRecord = simulation.table.newColumn(friendlyName + " Frequency (Hz)");
+        this.frequencyRecord = simulation.table.newColumn(friendlyName + " Frequency (Hz)");
         this.throughputRecord = simulation.table.newColumn(friendlyName + " Throughput (pkt/s)");
     }
 
@@ -24,7 +24,7 @@ public abstract class SimulatedDevice extends Simulated {
         this.getDevice().updateEnergy(effectiveEnergy, simulation.spf);
 
         energyRecord.addNewData(getDevice().getEnergy());
-        //frequencyRecord.addNewData(getDevice().getInstantThroughput()) ;
+        frequencyRecord.addNewData(getDevice().getInstantThroughput());
         throughputRecord.addNewData(getDevice().getInstantThroughput() * simulation.spf);
     }
 
@@ -33,7 +33,7 @@ public abstract class SimulatedDevice extends Simulated {
     @Override
     public void initSimulation() {
         this.energyRecord.addNewData(getDevice().getEnergy());
-        //this.frequencyRecord.addNewData(getDevice().getCommunicationFrequency());
+        this.frequencyRecord.addNewData(getDevice().getCommunicationFrequency());
         this.throughputRecord.addNewData(getDevice().getInstantThroughput());
     }
 }
