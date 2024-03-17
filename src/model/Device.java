@@ -16,7 +16,7 @@ public abstract class Device implements EnergyUser, Simulable {
      * captors with different battery sizes and model an
      * inhomogeneous system.
      */
-    public double batterySize;
+    public double batterySize = DEFAULT_BATTERY_SIZE;
 
     /**
      * Maximum communication frequency (Hz)
@@ -25,10 +25,9 @@ public abstract class Device implements EnergyUser, Simulable {
     protected final int energyPeriod;
     protected final List<Double> energySum, energySumCarre;
     protected final List<LinkedList<Double>> energyData;
-    protected int availableEnergy = 0;
     protected int counterEnergy = 0;
     protected double periodNumber = 0;
-    public int periodMax = 90;
+    public int periodMax = DEFAULT_SLIDING_WINDOW;
     public final DeviceMode mode;
 
     /**
@@ -59,6 +58,7 @@ public abstract class Device implements EnergyUser, Simulable {
     public static final double DEFAULT_EXPOSURE = 1;
     public static final double COMM_FREQUENCY_INIT = 0;
     public static final double DEFAULT_BATTERY_SIZE = 40000;
+    public static final int DEFAULT_SLIDING_WINDOW = 90;
 
     public Device(int energyPeriod, DeviceMode mode) {
         this(energyPeriod, mode, DEFAULT_EXPOSURE, DEFAULT_MAX_COMM_FREQUENCY);
@@ -77,7 +77,6 @@ public abstract class Device implements EnergyUser, Simulable {
             this.energySumCarre.add((double) 0);
         }
         this.maxCommFrequency = maxCommFrequency;
-        this.batterySize = DEFAULT_BATTERY_SIZE;
     }
 
     public void receiveEnergy(double energyPower, double seconds) {
@@ -93,20 +92,18 @@ public abstract class Device implements EnergyUser, Simulable {
         this.receiveEnergy(energyPower, seconds);
         this.consumeEnergy(seconds);
 
-        //IF THE DEVICE RUNS OUT OF ENERGY
+        // If device runs out of energy
         if (this.energy < 0) {
-
             //System.out.println("Oh no energy = "+ this.energy) ;
-            commFrequency = (this.energy + commFrequency * COMMUNICATION_COST * seconds) / (COMMUNICATION_COST * seconds);
+            commFrequency = Math.max(0, (this.energy + commFrequency * COMMUNICATION_COST * seconds) / (COMMUNICATION_COST * seconds));
             //System.out.println("new commFreq = " + commFreq) ;
-            if (commFrequency < 0) commFrequency = 0;
             this.energy = 0;
         }
+
         this.energy = Math.min(energy, batterySize);
     }
 
     public double getEnergy() {
-        //	System.out.println(energy) ;
         return energy;
     }
 
@@ -135,7 +132,7 @@ public abstract class Device implements EnergyUser, Simulable {
             if (periodNumber > periodMax) periodNumber = periodMax;
 
             if (periodNumber > 1) {
-                availableEnergy = 0;
+                double availableEnergy = 0;
                 List<Double> sigma = new ArrayList<>();
                 //System.out.println("periodNumber = " + periodNumber) ;
                 for (int i = 0; i < energyPeriod; i++) {
@@ -155,8 +152,15 @@ public abstract class Device implements EnergyUser, Simulable {
         }
     }
 
-    public double c = 2;
-    public double a = 1d / 10d;
+    /**
+     * Frequency constant for the constant policy
+     */
+    public double fConstant = .5;
+
+    /**
+     * Proportionality constant for the Proportional policy
+     */
+    public double alphaConstant = 1e-4;
 
     @Override
     public void updateParameters() {
@@ -164,11 +168,11 @@ public abstract class Device implements EnergyUser, Simulable {
 
             case CONSTANT_FREQUENCY:
                 if (this.energy < 100) commFrequency = 0;
-                else commFrequency = c;
+                else commFrequency = fConstant;
                 break;
 
             case PROPORTIONAL_FREQUENCY:
-                commFrequency = energy * a;
+                commFrequency = energy * alphaConstant;
                 if (commFrequency < 0) commFrequency = 0;
                 break;
 

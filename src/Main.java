@@ -9,6 +9,8 @@ import simulation.Simulation;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class Main {
@@ -16,8 +18,9 @@ public class Main {
     public static void main(String[] args) {
         // generateDataPaper(memo, secondPerPeriod, secondsPerTick);
         // wrtExposure();
-        // wrtBatterySize();
-        test();
+        //wrtBatterySize();
+        networkLifetime();
+        //test();
     }
 
     public static void test() {
@@ -25,10 +28,35 @@ public class Main {
         boolean realData = true;
         double secondPerPeriod = 24 * 60 * 60 / secondsPerTick;
         boolean memo = true;
-        int n_captors = 1;
+        int n_captors = 3;
 
         EnergyArrivalModel eModel = generateModel(realData, secondPerPeriod, secondsPerTick);
-        Cluster h = new Cluster(n_captors, eModel.getEnergyPeriod(), DeviceMode.PROPORTIONAL_FREQUENCY);
+        Cluster h = new Cluster(n_captors, eModel.getEnergyPeriod(), DeviceMode.ODMACPP_GB);
+        h.getCaptors().get(0).batterySize = 15000;
+        h.getCaptors().get(0).exposure = .75;
+        h.getCaptors().get(1).batterySize = 30000;
+        h.getCaptors().get(0).exposure = .5;
+        h.getCaptors().get(2).batterySize = 40000;
+        Simulation simul = new Simulation(0, 60 * 24 * 90, h, secondsPerTick, eModel);
+        simul.run();
+        if (memo) simul.exportToCsv();
+        else new GraphFrame(1024, 768, simul);
+    }
+
+    public static void networkLifetime() {
+        double secondsPerTick = 60;
+        boolean realData = true;
+        double secondPerPeriod = 24 * 60 * 60 / secondsPerTick;
+        boolean memo = true;
+        int n_captors = 3;
+
+        EnergyArrivalModel eModel = generateModel(realData, secondPerPeriod, secondsPerTick);
+        Cluster h = new Cluster(n_captors, eModel.getEnergyPeriod(), DeviceMode.ODMACPP_GB);
+        h.getCaptors().get(0).batterySize = 15000;
+        h.getCaptors().get(0).exposure = .75;
+        h.getCaptors().get(1).batterySize = 30000;
+        h.getCaptors().get(0).exposure = .5;
+        h.getCaptors().get(2).batterySize = 40000;
         Simulation simul = new Simulation(0, 60 * 24 * 90, h, secondsPerTick, eModel);
         simul.run();
         if (memo) simul.exportToCsv();
@@ -41,12 +69,12 @@ public class Main {
             boolean realData = true;
             double secondPerPeriod = 24 * 60 * 60 / secondsPerTick;
             int n_captors = 100;
-            double step = (double) 1 / n_captors;
+            double step = (double) 1 / (n_captors - 1);
 
             EnergyArrivalModel eModel = generateModel(realData, secondPerPeriod, secondsPerTick);
             Cluster h = new Cluster(n_captors, eModel.getEnergyPeriod(), mode);
             for (int i = 0; i < n_captors; i++)
-                h.getCaptors().get(i).exposure = (i + 1) * step;
+                h.getCaptors().get(i).exposure = i * step;
             Simulation simul = new Simulation(0, 60 * 24 * 90, h, secondsPerTick, eModel);
             simul.run();
 
@@ -54,8 +82,8 @@ public class Main {
                 final File targetFile = new File("output/wrt_exposure_" + mode.name + ".csv");
                 final PrintWriter pw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(targetFile), StandardCharsets.UTF_8));
                 for (int i = 0; i < n_captors; i++) {
-                    final double exposure = h.getCaptors().get(i).exposure * 100;
-                    pw.println(exposure + ";" + totalThroughput(i, simul.cluster, secondsPerTick) + ";" + totalDowntime(i, simul.cluster, secondsPerTick));
+                    final double x = h.getCaptors().get(i).exposure * 100;
+                    pw.println(x + ";" + totalThroughput(i, simul.cluster, secondsPerTick) + ";" + totalDowntime(i, simul.cluster, secondsPerTick));
                 }
                 pw.close();
             } catch (FileNotFoundException exception) {
@@ -63,18 +91,19 @@ public class Main {
             }
         }
     }
+
     private static void wrtBatterySize() {
         for (DeviceMode mode : DeviceMode.values()) {
             double secondsPerTick = 60;
             boolean realData = true;
             double secondPerPeriod = 24 * 60 * 60 / secondsPerTick;
-            int n_captors = 100;
-            double step = Device.DEFAULT_BATTERY_SIZE / n_captors;
+            int n_captors = 10;
+            double step = Device.DEFAULT_BATTERY_SIZE / (n_captors - 1);
 
             EnergyArrivalModel eModel = generateModel(realData, secondPerPeriod, secondsPerTick);
             Cluster h = new Cluster(n_captors, eModel.getEnergyPeriod(), mode);
             for (int i = 0; i < n_captors; i++)
-                h.getCaptors().get(i).batterySize = (i + 1) * step;
+                h.getCaptors().get(i).batterySize = i * step;
             Simulation simul = new Simulation(0, 60 * 24 * 90, h, secondsPerTick, eModel);
             simul.run();
 
@@ -82,8 +111,8 @@ public class Main {
                 final File targetFile = new File("output/wrt_capacity_" + mode.name + ".csv");
                 final PrintWriter pw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(targetFile), StandardCharsets.UTF_8));
                 for (int i = 0; i < n_captors; i++) {
-                    final double exposure = h.getCaptors().get(i).batterySize;
-                    pw.println(exposure + ";" + totalThroughput(i, simul.cluster, secondsPerTick) + ";" + totalDowntime(i, simul.cluster, secondsPerTick));
+                    final double x = h.getCaptors().get(i).batterySize;
+                    pw.println(x + ";" + totalThroughput(i, simul.cluster, secondsPerTick) + ";" + totalDowntime(i, simul.cluster, secondsPerTick));
                 }
                 pw.close();
             } catch (FileNotFoundException exception) {
@@ -128,7 +157,7 @@ public class Main {
         EnergyArrivalModel eModel = generateModel(realData, secondPerPeriod, secondsPerTick);
         Cluster h = new Cluster(5, eModel.getEnergyPeriod(), DeviceMode.PROPORTIONAL_FREQUENCY);
         h.getSink().batterySize = maxBattery;
-        h.getSink().a = a;
+        h.getSink().alphaConstant = a;
         Simulation simul = new Simulation(0, 60 * 24 * duration, h, secondsPerTick, eModel);
         simul.run();
         if (memo) simul.exportToCsv();
@@ -139,7 +168,7 @@ public class Main {
         EnergyArrivalModel eModel = generateModel(realData, secondPerPeriod, secondsPerTick);
         Cluster h = new Cluster(5, eModel.getEnergyPeriod(), DeviceMode.CONSTANT_FREQUENCY);
         h.getSink().batterySize = maxBattery;
-        h.getSink().c = c;
+        h.getSink().fConstant = c;
         Simulation simul = new Simulation(0, 60 * 24 * duration, h, secondsPerTick, eModel);
         simul.run();
         if (memo) simul.exportToCsv();

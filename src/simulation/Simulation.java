@@ -70,10 +70,10 @@ public class Simulation {
 
         switch (sink.mode) {
             case CONSTANT_FREQUENCY:
-                nameBuilder.append("const_c_eq_" + (String.format("%1.1e", sink.c)));
+                nameBuilder.append("const_c_eq_" + (String.format("%1.1e", sink.fConstant)));
                 break;
             case PROPORTIONAL_FREQUENCY:
-                nameBuilder.append("prop_a_eq_" + (String.format("%1.1e", sink.a)));
+                nameBuilder.append("prop_a_eq_" + (String.format("%1.1e", sink.alphaConstant)));
                 break;
             case ODMACPP_GB:
             case ODMACPP_SLB:

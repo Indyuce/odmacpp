@@ -14,7 +14,7 @@ public abstract class SimulatedDevice extends Simulated {
         this.energyRecord = simulation.table.newColumn(friendlyName + " Energy (kJ)");
         //this.frequencyRecord = simulation.table.newColumn(friendlyName + " Frequency (Hz)");
         this.throughputRecord = simulation.table.newColumn(friendlyName + " Throughput (pkt/s)");
-        this.downtimeRecord = simulation.table.newColumn(friendlyName + " Downtime (s)");
+        this.downtimeRecord = simulation.table.newColumn(friendlyName + " Downtime");
     }
 
     @Override
