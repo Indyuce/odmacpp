@@ -8,7 +8,7 @@ import java.util.List;
 
 public abstract class Device implements EnergyUser, Simulable {
 
-    protected double energy;
+    public double energy;
     protected double commFrequency = COMM_FREQUENCY_INIT;
 
     /**
@@ -139,7 +139,7 @@ public abstract class Device implements EnergyUser, Simulable {
                 List<Double> sigma = new ArrayList<>();
                 //System.out.println("periodNumber = " + periodNumber) ;
                 for (int i = 0; i < energyPeriod; i++) {
-                    double sigmai = energySumCarre.get(i) / periodNumber - (energySum.get(i) / periodNumber) * (energySum.get(i) / periodNumber);
+                    double sigmai = energySumCarre.get(i) / periodNumber - Math.pow(energySum.get(i) / periodNumber, 2);
                     if (sigmai < 0) sigmai = 0;
                     sigma.add(Math.sqrt(sigmai));
                     //System.out.println("sigma = " +sigma.get(i));
@@ -147,16 +147,15 @@ public abstract class Device implements EnergyUser, Simulable {
                 }
                 //System.out.println(eDispo) ;
                 //System.out.println("Energy sum 1000 = "+ this.energySum.get(1000));
-                double cfMax = 1000;//Math.max(0,(this.energyMax-idleCost*seconds)/(commCost*seconds))	;
                 if (mode == DeviceMode.ODMACPP_GB)
-                    cfm = computeFreq(0, cfMax, 0, this.energy, sigma, 0.01, energyPeriod, seconds);
+                    cfm = computeFreq(0, maxCommFrequency, 0, this.energy, sigma, 0.01, energyPeriod, seconds);
                 if (mode == DeviceMode.ODMACPP_SLB)
                     cfm = Math.max(0, (availableEnergy - idleCost * seconds * energyPeriod) / (COMMUNICATION_COST * seconds * energyPeriod));
             }
         }
     }
 
-    public double c = 0.2;
+    public double c = 2;
     public double a = 1d / 10d;
 
     @Override

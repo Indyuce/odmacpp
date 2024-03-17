@@ -81,8 +81,11 @@ public class Simulation {
                 nameBuilder.append("_" + sink.periodMax + "sw");
                 break;
         }
+        exportToCsv(nameBuilder.toString());
+    }
 
-        System.out.println("Exporting " + nameBuilder + "...");
-        table.export(new File("output/" + nameBuilder + ".csv"));
+    public void exportToCsv(String fileName) {
+        System.out.println("Exporting " + fileName + "...");
+        table.export(new File("output/" + fileName + ".csv"));
     }
 }

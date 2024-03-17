@@ -1,5 +1,6 @@
 import graphics.GraphFrame;
 import model.Cluster;
+import model.Device;
 import model.DeviceMode;
 import model.energy.EnergyArrivalModel;
 import simulation.SimulatedCaptor;
@@ -13,7 +14,9 @@ import java.util.Random;
 public class Main {
 
     public static void main(String[] args) {
-        //    generateDataPaper(memo, secondPerPeriod, secondsPerTick);
+        // generateDataPaper(memo, secondPerPeriod, secondsPerTick);
+        // wrtExposure();
+        // wrtBatterySize();
         test();
     }
 
@@ -22,50 +25,79 @@ public class Main {
         boolean realData = true;
         double secondPerPeriod = 24 * 60 * 60 / secondsPerTick;
         boolean memo = true;
-        int n_captors = 3;
-        double step = (double) 1 / n_captors;
+        int n_captors = 1;
 
         EnergyArrivalModel eModel = generateModel(realData, secondPerPeriod, secondsPerTick);
-        Cluster h = new Cluster(n_captors, eModel.getEnergyPeriod(), DeviceMode.ODMACPP_GB);
-        for (int i = 0; i < n_captors; i++)
-            h.getCaptors().get(i).exposure = (i + 1) * step;
+        Cluster h = new Cluster(n_captors, eModel.getEnergyPeriod(), DeviceMode.PROPORTIONAL_FREQUENCY);
         Simulation simul = new Simulation(0, 60 * 24 * 90, h, secondsPerTick, eModel);
         simul.run();
         if (memo) simul.exportToCsv();
         else new GraphFrame(1024, 768, simul);
     }
 
-    private static void throughputWrtExposure() {
-        double secondsPerTick = 60;
-        boolean realData = true;
-        double secondPerPeriod = 24 * 60 * 60 / secondsPerTick;
-        int n_captors = 50;
-        double step = (double) 1 / n_captors;
+    private static void wrtExposure() {
+        for (DeviceMode mode : DeviceMode.values()) {
+            double secondsPerTick = 60;
+            boolean realData = true;
+            double secondPerPeriod = 24 * 60 * 60 / secondsPerTick;
+            int n_captors = 100;
+            double step = (double) 1 / n_captors;
 
-        EnergyArrivalModel eModel = generateModel(realData, secondPerPeriod, secondsPerTick);
-        Cluster h = new Cluster(n_captors, eModel.getEnergyPeriod(), DeviceMode.ODMACPP_GB);
-        for (int i = 0; i < n_captors; i++)
-            h.getCaptors().get(i).exposure = (i + 1) * step;
-        Simulation simul = new Simulation(0, 60 * 24 * 90, h, secondsPerTick, eModel);
-        simul.run();
+            EnergyArrivalModel eModel = generateModel(realData, secondPerPeriod, secondsPerTick);
+            Cluster h = new Cluster(n_captors, eModel.getEnergyPeriod(), mode);
+            for (int i = 0; i < n_captors; i++)
+                h.getCaptors().get(i).exposure = (i + 1) * step;
+            Simulation simul = new Simulation(0, 60 * 24 * 90, h, secondsPerTick, eModel);
+            simul.run();
 
-        // Export total throughput
-        try {
-            final File targetFile = new File("output/throughput_wrt_exposure.csv");
-            final PrintWriter pw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(targetFile), StandardCharsets.UTF_8));
-            for (int i = 0; i < n_captors; i++) {
-                final double exposure = h.getCaptors().get(i).exposure * 100;
-                pw.println(exposure + ";" + totalThroughput(i, simul.cluster, secondsPerTick));
+            try {
+                final File targetFile = new File("output/wrt_exposure_" + mode.name + ".csv");
+                final PrintWriter pw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(targetFile), StandardCharsets.UTF_8));
+                for (int i = 0; i < n_captors; i++) {
+                    final double exposure = h.getCaptors().get(i).exposure * 100;
+                    pw.println(exposure + ";" + totalThroughput(i, simul.cluster, secondsPerTick) + ";" + totalDowntime(i, simul.cluster, secondsPerTick));
+                }
+                pw.close();
+            } catch (FileNotFoundException exception) {
+                System.exit(1);
             }
-            pw.close();
-        } catch (FileNotFoundException exception) {
-            exception.printStackTrace();
-            System.exit(1);
+        }
+    }
+    private static void wrtBatterySize() {
+        for (DeviceMode mode : DeviceMode.values()) {
+            double secondsPerTick = 60;
+            boolean realData = true;
+            double secondPerPeriod = 24 * 60 * 60 / secondsPerTick;
+            int n_captors = 100;
+            double step = Device.DEFAULT_BATTERY_SIZE / n_captors;
+
+            EnergyArrivalModel eModel = generateModel(realData, secondPerPeriod, secondsPerTick);
+            Cluster h = new Cluster(n_captors, eModel.getEnergyPeriod(), mode);
+            for (int i = 0; i < n_captors; i++)
+                h.getCaptors().get(i).batterySize = (i + 1) * step;
+            Simulation simul = new Simulation(0, 60 * 24 * 90, h, secondsPerTick, eModel);
+            simul.run();
+
+            try {
+                final File targetFile = new File("output/wrt_capacity_" + mode.name + ".csv");
+                final PrintWriter pw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(targetFile), StandardCharsets.UTF_8));
+                for (int i = 0; i < n_captors; i++) {
+                    final double exposure = h.getCaptors().get(i).batterySize;
+                    pw.println(exposure + ";" + totalThroughput(i, simul.cluster, secondsPerTick) + ";" + totalDowntime(i, simul.cluster, secondsPerTick));
+                }
+                pw.close();
+            } catch (FileNotFoundException exception) {
+                System.exit(1);
+            }
         }
     }
 
     private static double totalThroughput(int i, SimulatedCluster cluster, double secondsPerTick) {
         return ((SimulatedCaptor) cluster.getSimulated().get(1 + i)).throughputRecord.integrate(secondsPerTick);
+    }
+
+    private static double totalDowntime(int i, SimulatedCluster cluster, double secondsPerTick) {
+        return ((SimulatedCaptor) cluster.getSimulated().get(1 + i)).downtimeRecord.integrate(secondsPerTick);
     }
 
     public static void generateDataPaper(boolean memo, double secondPerPeriod, double secondsPerTick) {
