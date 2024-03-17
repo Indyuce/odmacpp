@@ -1,8 +1,10 @@
 import graphics.GraphFrame;
+import model.Captor;
 import model.Cluster;
 import model.Device;
-import model.DeviceMode;
+import model.EnergyPolicy;
 import model.energy.EnergyArrivalModel;
+import simulation.Simulated;
 import simulation.SimulatedCaptor;
 import simulation.SimulatedCluster;
 import simulation.Simulation;
@@ -15,56 +17,149 @@ import java.util.Random;
 
 public class Main {
 
+    private static final Random RANDOM = new Random();
+
     public static void main(String[] args) {
         // generateDataPaper(memo, secondPerPeriod, secondsPerTick);
         // wrtExposure();
         //wrtBatterySize();
-        networkLifetime();
+        //networkLifetimeWrtHeterogeneity();
         //test();
+        networkUptime2();
     }
 
     public static void test() {
         double secondsPerTick = 60;
         boolean realData = true;
         double secondPerPeriod = 24 * 60 * 60 / secondsPerTick;
-        boolean memo = true;
-        int n_captors = 3;
+        int n_captors = 2;
 
         EnergyArrivalModel eModel = generateModel(realData, secondPerPeriod, secondsPerTick);
-        Cluster h = new Cluster(n_captors, eModel.getEnergyPeriod(), DeviceMode.ODMACPP_GB);
-        h.getCaptors().get(0).batterySize = 15000;
-        h.getCaptors().get(0).exposure = .75;
-        h.getCaptors().get(1).batterySize = 30000;
-        h.getCaptors().get(0).exposure = .5;
-        h.getCaptors().get(2).batterySize = 40000;
+        Cluster h = new Cluster(n_captors, eModel.getEnergyPeriod(), EnergyPolicy.ODMACPP_GB);
+        h.getCaptors().get(0).batterySize = 40000;
+        h.getCaptors().get(0).exposure = 1;
+        h.getCaptors().get(1).exposure = .5;
+        h.getCaptors().get(1).batterySize = 40000;
         Simulation simul = new Simulation(0, 60 * 24 * 90, h, secondsPerTick, eModel);
         simul.run();
-        if (memo) simul.exportToCsv();
-        else new GraphFrame(1024, 768, simul);
+        simul.exportToCsv();
     }
 
-    public static void networkLifetime() {
+    public static void networkUptime2() {
         double secondsPerTick = 60;
         boolean realData = true;
         double secondPerPeriod = 24 * 60 * 60 / secondsPerTick;
-        boolean memo = true;
-        int n_captors = 3;
+        int n_captors = 100;
+        double min_c = .5, max_c = 10;
 
         EnergyArrivalModel eModel = generateModel(realData, secondPerPeriod, secondsPerTick);
-        Cluster h = new Cluster(n_captors, eModel.getEnergyPeriod(), DeviceMode.ODMACPP_GB);
-        h.getCaptors().get(0).batterySize = 15000;
-        h.getCaptors().get(0).exposure = .75;
-        h.getCaptors().get(1).batterySize = 30000;
-        h.getCaptors().get(0).exposure = .5;
-        h.getCaptors().get(2).batterySize = 40000;
+        Cluster h = new Cluster(n_captors, eModel.getEnergyPeriod(), EnergyPolicy.CONSTANT_FREQUENCY);
+        for (int j = 0; j < n_captors; j++) {
+            Captor c = h.getCaptors().get(j);
+            c.fConstant = min_c + (max_c - min_c) / (n_captors - 1) * j;
+        }
         Simulation simul = new Simulation(0, 60 * 24 * 90, h, secondsPerTick, eModel);
         simul.run();
-        if (memo) simul.exportToCsv();
-        else new GraphFrame(1024, 768, simul);
+        simul.exportToCsv("network_uptime_2");
+    }
+
+    public static void networkUptime1() {
+        double secondsPerTick = 60;
+        boolean realData = true;
+        double secondPerPeriod = 24 * 60 * 60 / secondsPerTick;
+        int n_captors = 100;
+
+        EnergyArrivalModel eModel = generateModel(realData, secondPerPeriod, secondsPerTick);
+        Cluster h = new Cluster(n_captors, eModel.getEnergyPeriod(), EnergyPolicy.ODMACPP_GB);
+        for (int j = 0; j < n_captors; j++) {
+            Captor c = h.getCaptors().get(j);
+            c.exposure = .2 + (double) j / n_captors * .8;
+        }
+        Simulation simul = new Simulation(0, 60 * 24 * 90, h, secondsPerTick, eModel);
+        simul.run();
+        simul.exportToCsv("network_uptime_1");
+    }
+
+    public static void networkLifetimeWrtHeterogeneity() {
+        double secondsPerTick = 60;
+        boolean realData = true;
+        double secondPerPeriod = 24 * 60 * 60 / secondsPerTick;
+        int n_captors = 50;
+
+        // Min/max/mean value/standard deviation for energy exposure
+        final double exposureAvg = .6, exposureMin = .1, exposureMax = 1;
+
+        for (EnergyPolicy mode : EnergyPolicy.values()) {
+
+            final File targetFile = new File("output/downtime_wrt_std_" + mode.name + ".csv");
+            final PrintWriter pw;
+            try {
+                pw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(targetFile), StandardCharsets.UTF_8));
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+
+            int n_points = 20;
+            final double stdMin = 0, stdMax = .3;
+            final double stdStep = (stdMax - stdMin) / (n_points - 1);
+
+            for (int i = 0; i < n_points; i++) {
+                final double exposureStd = stdMin + i * stdStep;
+
+                EnergyArrivalModel eModel = generateModel(realData, secondPerPeriod, secondsPerTick);
+                Cluster h = new Cluster(n_captors, eModel.getEnergyPeriod(), mode);
+                for (int j = 0; j < n_captors; j++) {
+                    Captor c = h.getCaptors().get(j);
+                    c.exposure = exposureAvg;
+                    c.exposure = rg(exposureAvg, exposureStd, exposureMin, exposureMax);
+                    c.batterySize = 20000;
+                }
+                Simulation simul = new Simulation(0, 60 * 24 * 90, h, secondsPerTick, eModel);
+                simul.run();
+
+                double dt = sensorDowntime(simul);
+                System.out.println("got " + exposureStd + " -> " + dt * 100);
+                pw.println(exposureStd + ";" + dt);
+            }
+
+            pw.close();
+        }
+    }
+
+    private static double rg(double mean, double std, double min, double max) {
+        return Math.max(min, Math.min(max, mean + RANDOM.nextGaussian() * std));
+    }
+
+    private static final double DOWNTIME_THRESHOLD = .1;
+
+    private static double sensorDowntime(Simulation s) {
+
+        // get all downtimes
+        List<List<Double>> downtimes = new ArrayList<>();
+        int n_captors = 0;
+        for (Simulated simulated : s.cluster.getSimulated())
+            if (simulated instanceof SimulatedCaptor) {
+                downtimes.add(((SimulatedCaptor) simulated).downtimeRecord.data);
+                n_captors++;
+            }
+
+        // calculate network downtime
+        double count = 0;
+        final double threshold = DOWNTIME_THRESHOLD * n_captors;
+        for (int i = 0; i < downtimes.get(0).size(); i++) {
+            //double networkCurrDowntime = 0;
+            for (int j = 0; j < downtimes.size(); j++)
+                count += downtimes.get(j).get(i) / downtimes.size();
+
+            //if (networkCurrDowntime > threshold) count++;
+        }
+
+        final int total = downtimes.get(0).size();
+        return count / total;
     }
 
     private static void wrtExposure() {
-        for (DeviceMode mode : DeviceMode.values()) {
+        for (EnergyPolicy mode : EnergyPolicy.values()) {
             double secondsPerTick = 60;
             boolean realData = true;
             double secondPerPeriod = 24 * 60 * 60 / secondsPerTick;
@@ -93,7 +188,7 @@ public class Main {
     }
 
     private static void wrtBatterySize() {
-        for (DeviceMode mode : DeviceMode.values()) {
+        for (EnergyPolicy mode : EnergyPolicy.values()) {
             double secondsPerTick = 60;
             boolean realData = true;
             double secondPerPeriod = 24 * 60 * 60 / secondsPerTick;
@@ -138,24 +233,24 @@ public class Main {
         simDataProp(memo, false, 7, 40000, secondPerPeriod, secondsPerTick, 1d / 5000d);
         simDataProp(memo, false, 7, 40000, secondPerPeriod, secondsPerTick, 1d);
 
-        simDataODMACPP(memo, false, 30, 40000, secondPerPeriod, secondsPerTick, DeviceMode.ODMACPP_SLB, 90);
-        simDataODMACPP(memo, false, 30, 40000, secondPerPeriod, secondsPerTick, DeviceMode.ODMACPP_GB, 90);
+        simDataODMACPP(memo, false, 30, 40000, secondPerPeriod, secondsPerTick, EnergyPolicy.ODMACPP_SLB, 90);
+        simDataODMACPP(memo, false, 30, 40000, secondPerPeriod, secondsPerTick, EnergyPolicy.ODMACPP_GB, 90);
 
         simDataProp(memo, true, 30, 40000, secondPerPeriod, secondsPerTick, 1d / 5000d);
 
-        simDataODMACPP(memo, true, 30, 40000, secondPerPeriod, secondsPerTick, DeviceMode.ODMACPP_SLB, 90);
-        simDataODMACPP(memo, true, 30, 40000, secondPerPeriod, secondsPerTick, DeviceMode.ODMACPP_GB, 90);
+        simDataODMACPP(memo, true, 30, 40000, secondPerPeriod, secondsPerTick, EnergyPolicy.ODMACPP_SLB, 90);
+        simDataODMACPP(memo, true, 30, 40000, secondPerPeriod, secondsPerTick, EnergyPolicy.ODMACPP_GB, 90);
 
-        simDataODMACPP(memo, true, 30, 10000, secondPerPeriod, secondsPerTick, DeviceMode.ODMACPP_SLB, 90);
-        simDataODMACPP(memo, true, 30, 10000, secondPerPeriod, secondsPerTick, DeviceMode.ODMACPP_GB, 90);
+        simDataODMACPP(memo, true, 30, 10000, secondPerPeriod, secondsPerTick, EnergyPolicy.ODMACPP_SLB, 90);
+        simDataODMACPP(memo, true, 30, 10000, secondPerPeriod, secondsPerTick, EnergyPolicy.ODMACPP_GB, 90);
 
-        simDataODMACPP(memo, true, 100, 40000, secondPerPeriod, secondsPerTick, DeviceMode.ODMACPP_GB, 100);
-        simDataODMACPP(memo, true, 100, 40000, secondPerPeriod, secondsPerTick, DeviceMode.ODMACPP_GB, 15);
+        simDataODMACPP(memo, true, 100, 40000, secondPerPeriod, secondsPerTick, EnergyPolicy.ODMACPP_GB, 100);
+        simDataODMACPP(memo, true, 100, 40000, secondPerPeriod, secondsPerTick, EnergyPolicy.ODMACPP_GB, 15);
     }
 
     public static void simDataProp(boolean memo, boolean realData, int duration, double maxBattery, double secondPerPeriod, double secondsPerTick, double a) {
         EnergyArrivalModel eModel = generateModel(realData, secondPerPeriod, secondsPerTick);
-        Cluster h = new Cluster(5, eModel.getEnergyPeriod(), DeviceMode.PROPORTIONAL_FREQUENCY);
+        Cluster h = new Cluster(5, eModel.getEnergyPeriod(), EnergyPolicy.PROPORTIONAL_FREQUENCY);
         h.getSink().batterySize = maxBattery;
         h.getSink().alphaConstant = a;
         Simulation simul = new Simulation(0, 60 * 24 * duration, h, secondsPerTick, eModel);
@@ -166,7 +261,7 @@ public class Main {
 
     public static void simDataConst(boolean memo, boolean realData, int duration, double maxBattery, double secondPerPeriod, double secondsPerTick, double c) {
         EnergyArrivalModel eModel = generateModel(realData, secondPerPeriod, secondsPerTick);
-        Cluster h = new Cluster(5, eModel.getEnergyPeriod(), DeviceMode.CONSTANT_FREQUENCY);
+        Cluster h = new Cluster(5, eModel.getEnergyPeriod(), EnergyPolicy.CONSTANT_FREQUENCY);
         h.getSink().batterySize = maxBattery;
         h.getSink().fConstant = c;
         Simulation simul = new Simulation(0, 60 * 24 * duration, h, secondsPerTick, eModel);
@@ -175,7 +270,7 @@ public class Main {
         else new GraphFrame(1024, 768, simul);
     }
 
-    public static void simDataODMACPP(boolean memo, boolean realData, int duration, double maxBattery, double secondPerPeriod, double secondsPerTick, DeviceMode mode, int SW) {
+    public static void simDataODMACPP(boolean memo, boolean realData, int duration, double maxBattery, double secondPerPeriod, double secondsPerTick, EnergyPolicy mode, int SW) {
         EnergyArrivalModel eModel = generateModel(realData, secondPerPeriod, secondsPerTick);
         Cluster h = new Cluster(5, eModel.getEnergyPeriod(), mode);
         h.getSink().batterySize = maxBattery;
@@ -191,15 +286,14 @@ public class Main {
         EnergyArrivalModel eModel;
         if (!realData) {
             eModel = new EnergyArrivalModel() {
-                Random r = new Random();
-                double currGauss = r.nextGaussian() / 10;
+                double currGauss = RANDOM.nextGaussian() / 10;
                 int counter = 0;
 
                 @Override
                 public double getEnergy(double t) {
                     counter++;
                     if (counter == 60) {
-                        currGauss = r.nextGaussian() / 4;
+                        currGauss = RANDOM.nextGaussian() / 4;
                         counter = 0;
                     }
                     return Math.max(0, Math.sin(t * 2 * Math.PI / (secondPerPeriod * secondsPerTick)) + currGauss);

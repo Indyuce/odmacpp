@@ -6,7 +6,7 @@ import simulation.Simulation;
 public class Captor extends Device {
     protected double pc = 1; // collision probability TODO probability of NO collision?
 
-    public Captor(double pc, DeviceMode mode, int ep) {
+    public Captor(double pc, EnergyPolicy mode, int ep) {
         super(ep, mode);
 
         this.pc = pc;

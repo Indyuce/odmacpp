@@ -5,7 +5,6 @@ import simulation.SimulatedCluster;
 import simulation.Simulation;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -17,7 +16,7 @@ public class Cluster implements EnergyUser, Simulable {
     private final List<Captor> captors;
     final static double PC_INIT = 1;
 
-    public Cluster(int nbCaptors, int ep, DeviceMode mode) {
+    public Cluster(int nbCaptors, int ep, EnergyPolicy mode) {
         this.sink = new Sink(ep, mode, 100 * nbCaptors * PC_INIT);
 
         final List<Captor> captors = new ArrayList<>(nbCaptors);

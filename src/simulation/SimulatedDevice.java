@@ -37,7 +37,7 @@ public abstract class SimulatedDevice extends Simulated {
     public void initSimulation() {
         this.energyRecord.addNewData(getDevice().getEnergy());
         //this.frequencyRecord.addNewData(getDevice().getCommunicationFrequency());
-        this.throughputRecord.addNewData(getDevice().getInstantThroughput());
-        this.throughputRecord.addNewData(getDevice().energy == 0 ? 1 : 0);
+        this.throughputRecord.addNewData(0);
+        this.throughputRecord.addNewData(0);
     }
 }

@@ -4,7 +4,7 @@ import simulation.SimulatedSink;
 import simulation.Simulation;
 
 public class Sink extends Device {
-    public Sink(int ep, DeviceMode mode, double commFreqMax) {
+    public Sink(int ep, EnergyPolicy mode, double commFreqMax) {
         super(ep, mode, 1, commFreqMax);
     }
 

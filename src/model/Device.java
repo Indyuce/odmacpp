@@ -28,7 +28,7 @@ public abstract class Device implements EnergyUser, Simulable {
     protected int counterEnergy = 0;
     protected double periodNumber = 0;
     public int periodMax = DEFAULT_SLIDING_WINDOW;
-    public final DeviceMode mode;
+    public final EnergyPolicy mode;
 
     /**
      * By default, set to 1. This is the ratio of power effectively
@@ -60,11 +60,11 @@ public abstract class Device implements EnergyUser, Simulable {
     public static final double DEFAULT_BATTERY_SIZE = 40000;
     public static final int DEFAULT_SLIDING_WINDOW = 90;
 
-    public Device(int energyPeriod, DeviceMode mode) {
+    public Device(int energyPeriod, EnergyPolicy mode) {
         this(energyPeriod, mode, DEFAULT_EXPOSURE, DEFAULT_MAX_COMM_FREQUENCY);
     }
 
-    public Device(int energyPeriod, DeviceMode mode, double exposure, double maxCommFrequency) {
+    public Device(int energyPeriod, EnergyPolicy mode, double exposure, double maxCommFrequency) {
         this.energyPeriod = energyPeriod;
         this.exposure = exposure;
         this.mode = mode;
@@ -144,9 +144,9 @@ public abstract class Device implements EnergyUser, Simulable {
                 }
                 //System.out.println(eDispo) ;
                 //System.out.println("Energy sum 1000 = "+ this.energySum.get(1000));
-                if (mode == DeviceMode.ODMACPP_GB)
+                if (mode == EnergyPolicy.ODMACPP_GB)
                     cfm = computeFreq(0, maxCommFrequency, 0, this.energy, sigma, 0.01, energyPeriod, seconds);
-                if (mode == DeviceMode.ODMACPP_SLB)
+                if (mode == EnergyPolicy.ODMACPP_SLB)
                     cfm = Math.max(0, (availableEnergy - idleCost * seconds * energyPeriod) / (COMMUNICATION_COST * seconds * energyPeriod));
             }
         }
